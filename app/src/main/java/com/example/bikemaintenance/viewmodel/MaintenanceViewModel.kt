@@ -1,4 +1,4 @@
-package com.example.bikemaintenance.viewnodel
+package com.example.bikemaintenance.viewmodel
 
 import androidx.lifecycle.*
 import com.example.bikemaintenance.data.MaintenanceRecord
