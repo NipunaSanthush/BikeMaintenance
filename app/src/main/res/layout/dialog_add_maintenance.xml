@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etServiceType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Service Type (e.g. Oil Change)" />
+
+    <EditText
+        android:id="@+id/etMileage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="Current Mileage (km)" />
+
+    <EditText
+        android:id="@+id/etCost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:hint="Cost (Rs.)" />
+
+    <EditText
+        android:id="@+id/etDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="date"
+        android:hint="Date (YYYY-MM-DD)" />
+
+</LinearLayout>
