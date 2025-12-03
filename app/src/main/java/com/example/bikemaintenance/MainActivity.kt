@@ -34,7 +34,16 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         maintenanceViewModel.allRecords.observe(this) { records ->
-            records?.let { adapter.submitList(it) }
+            records?.let {
+                adapter.submitList(it)
+
+                var totalCost = 0.0
+                for (record in it){
+                    totalCost += record.cost
+                }
+                val tvTotal = findViewById<android.widget.TextView>(R.id.tvTotalCost)
+                tvTotal.text = "Rs. $totalCost"
+            }
         }
 
         val fab = findViewById<FloatingActionButton>(R.id.fabAdd)
