@@ -37,6 +37,13 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val session = com.example.bikemaintenance.utils.SessionManager(requireContext())
+        val userDetails = session.getUserDetails()
+        val name = userDetails[com.example.bikemaintenance.utils.SessionManager.KEY_NAME]
+
+        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
+        tvTitle.text = "Hello, $name! 👋"
+
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         val adapter = MaintenanceAdapter()
         recyclerView.adapter = adapter
