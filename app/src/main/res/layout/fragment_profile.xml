@@ -26,11 +26,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/tvUserName"
+        android:id="@+id/tvProfileName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="My Profile"
+        android:text="User Name"
         android:textColor="@android:color/white"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -62,10 +62,11 @@
                 android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/tvProfileBikeModel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="Honda AX-1"
+                android:text="-"
                 android:textColor="#000000"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -84,9 +85,10 @@
                 android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/tvProfilePlate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="WP BEx-XXXX"
+                android:text="-"
                 android:textColor="#000000"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -95,6 +97,7 @@
     </androidx.cardview.widget.CardView>
 
     <Button
+        android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="32dp"
