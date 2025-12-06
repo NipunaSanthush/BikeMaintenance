@@ -22,7 +22,7 @@ class SessionManager(context: Context) {
         editor.apply()
     }
 
-    fun getUserDeteils(): HashMap<String, String> {
+    fun getUserDetails(): HashMap<String, String> {
         val user = HashMap<String, String>()
         user[KEY_NAME] = prefs.getString(KEY_NAME, "User")!!
         user[KEY_BIKE_MODEL] = prefs.getString(KEY_BIKE_MODEL, "Bike")!!
