@@ -63,6 +63,25 @@ class HomeFragment : Fragment() {
             }
         }
 
+        val tvMileage = view.findViewById<TextView>(R.id.tvMileage)
+
+        maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner){ fuelList ->
+            if (fuelList != null && fuelList.size >= 2) {
+                val sortedList = fuelList.sortedBy { it.odometer }
+
+                val lastRecord = sortedList.last()
+                val prevRecord = sortedList[sortedList.size - 2]
+
+                val distance = lastRecord.odometer - prevRecord.odometer
+
+                val mileage = distance / lastRecord.liters
+
+                tvMileage.text = "%.1f km/L".format(mileage)
+            }else{
+                tvMileage.text = "- km/L"
+            }
+        }
+
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAdd)
         fab.setOnClickListener {
             showSelectionDialog()
