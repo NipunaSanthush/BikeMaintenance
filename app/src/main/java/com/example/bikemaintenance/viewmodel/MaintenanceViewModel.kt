@@ -1,6 +1,7 @@
 package com.example.bikemaintenance.viewmodel
 
 import androidx.lifecycle.*
+import com.example.bikemaintenance.data.FuelRecord
 import com.example.bikemaintenance.data.MaintenanceRecord
 import com.example.bikemaintenance.data.MaintenanceRepository
 import kotlinx.coroutines.launch
@@ -19,6 +20,12 @@ class MaintenanceViewModel(private val repository: MaintenanceRepository) : View
 
     fun delete(record: MaintenanceRecord) = viewModelScope.launch{
         repository.delete(record)
+    }
+
+    val allFuelRecords: LiveData<List<FuelRecord>> = repository.allFuelRecords.asLiveData()
+
+    fun insertFuel(record: FuelRecord) = viewModelScope.launch {
+        repository.insertFuel(record)
     }
 }
 
