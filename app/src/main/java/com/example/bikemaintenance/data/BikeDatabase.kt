@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [MaintenanceRecord::class], version = 1, exportSchema = false)
+@Database(entities = [MaintenanceRecord::class, FuelRecord::class], version = 2, exportSchema = false)
 abstract class BikeDatabase : RoomDatabase(){
 
     abstract fun maintenanceDao(): MaintenanceDao
+    abstract fun fuelDao(): FuelDao
 
     companion object{
         @Volatile
@@ -20,7 +21,9 @@ abstract class BikeDatabase : RoomDatabase(){
                     context.applicationContext,
                     BikeDatabase::class.java,
                     "bike_maintenance_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }
