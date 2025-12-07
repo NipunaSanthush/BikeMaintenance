@@ -13,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bikemaintenance.adapter.MaintenanceAdapter
+import com.example.bikemaintenance.data.FuelRecord
 import com.example.bikemaintenance.data.MaintenanceRecord
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModel
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
@@ -54,7 +55,6 @@ class HomeFragment : Fragment() {
         maintenanceViewModel.allRecords.observe(viewLifecycleOwner) { records ->
             records?.let {
                 adapter.submitList(it)
-
                 var total = 0.0
                 for (record in it) {
                     total += record.cost
@@ -65,13 +65,27 @@ class HomeFragment : Fragment() {
 
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAdd)
         fab.setOnClickListener {
-            showAddDialog()
+            showSelectionDialog()
         }
     }
 
-    private fun showAddDialog() {
+    private fun showSelectionDialog() {
+        val options = arrayOf("Add Service Record", "Add Fuel Record")
         val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("Add New Record")
+        builder.setTitle("What do you want to add?")
+        builder.setItems(options) { _, which ->
+            if (which == 0) {
+                showAddServiceDialog()
+            } else {
+                showAddFuelDialog()
+            }
+        }
+        builder.show()
+    }
+
+    private fun showAddServiceDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Add Service Record")
 
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_maintenance, null)
         builder.setView(view)
@@ -98,12 +112,49 @@ class HomeFragment : Fragment() {
                     date = date
                 )
                 maintenanceViewModel.insert(record)
-                Toast.makeText(requireContext(), "Saved!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Service Saved!", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
+    }
 
+    private fun showAddFuelDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Add Fuel Record")
+
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_fuel, null)
+        builder.setView(view)
+
+        val etDate = view.findViewById<EditText>(R.id.etFuelDate)
+        val etLiters = view.findViewById<EditText>(R.id.etFuelLiters)
+        val etCost = view.findViewById<EditText>(R.id.etFuelCost)
+        val etOdometer = view.findViewById<EditText>(R.id.etFuelOdometer)
+
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        etDate.setText(currentDate)
+
+        builder.setPositiveButton("Save") { _, _ ->
+            val date = etDate.text.toString()
+            val litersStr = etLiters.text.toString()
+            val costStr = etCost.text.toString()
+            val odoStr = etOdometer.text.toString()
+
+            if (date.isNotEmpty() && litersStr.isNotEmpty() && costStr.isNotEmpty() && odoStr.isNotEmpty()) {
+                val record = FuelRecord(
+                    date = date,
+                    liters = litersStr.toDouble(),
+                    cost = costStr.toDouble(),
+                    odometer = odoStr.toInt()
+                )
+                maintenanceViewModel.insertFuel(record)
+                Toast.makeText(requireContext(), "Fuel Saved!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+            }
+        }
         builder.setNegativeButton("Cancel", null)
         builder.show()
     }
