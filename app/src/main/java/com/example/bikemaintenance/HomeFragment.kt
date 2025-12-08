@@ -50,7 +50,7 @@ class HomeFragment : Fragment() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        val tvTotalCost = view.findViewById<TextView>(R.id.tvTotalCost)
+        tvTotalCost = view.findViewById<TextView>(R.id.tvTotalCost)
 
         maintenanceViewModel.allRecords.observe(viewLifecycleOwner) { records ->
             records?.let {
@@ -59,7 +59,8 @@ class HomeFragment : Fragment() {
                 for (record in it) {
                     total += record.cost
                 }
-                tvTotalCost.text = "Rs. %.2f".format(total)
+                serviceTotal = total
+                updateTotalCost()
             }
         }
 
@@ -90,7 +91,7 @@ class HomeFragment : Fragment() {
 
     private var serviceTotal = 0.0
     private var fuelTotal = 0.0
-    private lateinit var tvTatalCost: TextView
+    private lateinit var tvTotalCost: TextView
 
     private fun updateTotalCost() {
         val overallTotal = serviceTotal + fuelTotal
