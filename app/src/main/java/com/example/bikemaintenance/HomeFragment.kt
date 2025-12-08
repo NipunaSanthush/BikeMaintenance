@@ -83,6 +83,8 @@ class HomeFragment : Fragment() {
             }
         }
 
+
+
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAdd)
         fab.setOnClickListener {
             showSelectionDialog()
@@ -95,7 +97,7 @@ class HomeFragment : Fragment() {
 
     private fun updateTotalCost() {
         val overallTotal = serviceTotal + fuelTotal
-        tvTatalCost.text = "Rs. %.2f".format(overallTotal)
+        tvTotalCost.text = "Rs. %.2f".format(overallTotal)
     }
 
     private fun showSelectionDialog() {
