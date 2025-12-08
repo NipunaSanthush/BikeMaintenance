@@ -83,7 +83,14 @@ class HomeFragment : Fragment() {
             }
         }
 
-
+        maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner) {fuelList ->
+            var total = 0.0
+            for (record in fuelList) {
+                total += record.cost
+            }
+            fuelTotal = total
+            updateTotalCost()
+        }
 
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAdd)
         fab.setOnClickListener {
