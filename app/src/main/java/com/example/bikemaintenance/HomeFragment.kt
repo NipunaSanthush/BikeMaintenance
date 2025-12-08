@@ -88,6 +88,15 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private var serviceTotal = 0.0
+    private var fuelTotal = 0.0
+    private lateinit var tvTatalCost: TextView
+
+    private fun updateTotalCost() {
+        val overallTotal = serviceTotal + fuelTotal
+        tvTatalCost.text = "Rs. %.2f".format(overallTotal)
+    }
+
     private fun showSelectionDialog() {
         val options = arrayOf("Add Service Record", "Add Fuel Record")
         val builder = AlertDialog.Builder(requireContext())
