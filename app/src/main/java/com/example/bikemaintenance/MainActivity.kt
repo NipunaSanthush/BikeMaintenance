@@ -25,6 +25,10 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(HistoryFragment())
                     true
                 }
+                R.id.navigation_map -> {
+                    loadFragment(MapFragment())
+                    true
+                }
                 R.id.navigation_profile -> {
                     loadFragment(ProfileFragment())
                     true
