@@ -61,4 +61,8 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
+
+    implementation("androidx.preference:preference-ktx:1.2.1")
 }
