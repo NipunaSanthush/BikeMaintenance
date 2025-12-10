@@ -26,5 +26,5 @@ class MaintenanceRepository(
 
     val allTrips: Flow<List<TripRecord>> = tripDao.getAllTrips()
     suspend fun insertTrip(trip: TripRecord) =tripDao.insertTrip(trip)
-    
+
 }

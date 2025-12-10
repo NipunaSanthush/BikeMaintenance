@@ -11,7 +11,8 @@ class BikeApplication : Application(){
     val repository by lazy {
         MaintenanceRepository(
             database.maintenanceDao(),
-            database.fuelDao()
+            database.fuelDao(),
+            database.tripDao()
         )
     }
 }
