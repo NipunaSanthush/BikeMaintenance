@@ -4,29 +4,32 @@ import androidx.lifecycle.*
 import com.example.bikemaintenance.data.FuelRecord
 import com.example.bikemaintenance.data.MaintenanceRecord
 import com.example.bikemaintenance.data.MaintenanceRepository
+import com.example.bikemaintenance.data.TripRecord
 import kotlinx.coroutines.launch
 
 class MaintenanceViewModel(private val repository: MaintenanceRepository) : ViewModel(){
 
     val allRecords: LiveData<List<MaintenanceRecord>> = repository.allRecords.asLiveData()
-
     fun insert(record: MaintenanceRecord) = viewModelScope.launch{
         repository.insert(record)
     }
-
     fun update(record: MaintenanceRecord) = viewModelScope.launch{
         repository.update(record)
     }
-
     fun delete(record: MaintenanceRecord) = viewModelScope.launch{
         repository.delete(record)
     }
 
     val allFuelRecords: LiveData<List<FuelRecord>> = repository.allFuelRecords.asLiveData()
-
     fun insertFuel(record: FuelRecord) = viewModelScope.launch {
         repository.insertFuel(record)
     }
+
+    val alltrips: LiveData<List<TripRecord>> = repository.allTrips.asLiveData()
+    fun insertTrip(trip: TripRecord) = viewModelScope.launch {
+        repository.insertTrip(trip)
+    }
+
 }
 
 class MaintenanceViewModelFactory(private val repository: MaintenanceRepository) : ViewModelProvider.Factory{
