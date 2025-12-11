@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bikemaintenance.adapter.FuelAdapter
 import com.example.bikemaintenance.adapter.MaintenanceAdapter
+import com.example.bikemaintenance.adapter.TripAdapter
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModel
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
 
@@ -35,34 +36,42 @@ class HistoryFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvHistory)
         val btnServices = view.findViewById<Button>(R.id.btnShowServices)
         val btnFuel = view.findViewById<Button>(R.id.btnShowFuel)
+        val btnTrips = view.findViewById<Button>(R.id.btnShowTrips)
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         val serviceAdapter = MaintenanceAdapter()
         val fuelAdapter = FuelAdapter()
+        val tripAdapter = TripAdapter()
 
         recyclerView.adapter = serviceAdapter
 
-        maintenanceViewModel.allRecords.observe(viewLifecycleOwner) { records ->
-            serviceAdapter.submitList(records)
-        }
-
-        maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner) { records ->
-            fuelAdapter.submitList(records)
-        }
+        maintenanceViewModel.allRecords.observe(viewLifecycleOwner) { serviceAdapter.submitList(it) }
+        maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner) { fuelAdapter.submitList(it) }
+        maintenanceViewModel.allTrips.observe(viewLifecycleOwner) { tripAdapter.submitList(it) }
 
         btnServices.setOnClickListener {
             recyclerView.adapter = serviceAdapter
-
-            btnServices.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#1565C0"))
-            btnFuel.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B0BEC5"))
+            updateButtonColors(btnServices, btnFuel, btnTrips)
         }
 
         btnFuel.setOnClickListener {
             recyclerView.adapter = fuelAdapter
-
-            btnFuel.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#1565C0"))
-            btnServices.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B0BEC5"))
+            updateButtonColors(btnFuel, btnServices, btnTrips)
         }
+
+        btnTrips.setOnClickListener {
+            recyclerView.adapter = tripAdapter
+            updateButtonColors(btnTrips, btnServices, btnFuel)
+        }
+    }
+
+    private fun updateButtonColors(activeBtn: Button, inactive1: Button, inactive2: Button) {
+        val activeColor = ColorStateList.valueOf(Color.parseColor("#1565C0"))
+        val inactiveColor = ColorStateList.valueOf(Color.parseColor("#B0BEC5"))
+
+        activeBtn.backgroundTintList = activeColor
+        inactive1.backgroundTintList = inactiveColor
+        inactive2.backgroundTintList = inactiveColor
     }
 }
