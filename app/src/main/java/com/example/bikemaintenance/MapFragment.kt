@@ -15,11 +15,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.preference.PreferenceManager
+import com.example.bikemaintenance.data.TripRecord
+import com.example.bikemaintenance.viewmodel.MaintenanceViewModel
+import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -27,12 +32,19 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MapFragment : Fragment(), LocationListener {
 
     private lateinit var map: MapView
     private lateinit var locationOverlay: MyLocationNewOverlay
     private lateinit var locationManager: LocationManager
+
+    private val maintenanceViewModel: MaintenanceViewModel by viewModels {
+        MaintenanceViewModelFactory((requireActivity().application as BikeApplication).repository)
+    }
 
     private lateinit var tvSpeed: TextView
     private lateinit var tvDistance: TextView
@@ -149,27 +161,46 @@ class MapFragment : Fragment(), LocationListener {
         isTripStarted = false
         timerHandler.removeCallbacks(timerRunnable)
 
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val finalDistance = tvDistance.text.toString()
+        val finalDuration = tvDuration.text.toString()
+
+        val timeInSeconds = (System.currentTimeMillis() - startTime) / 1000
+        val avgSpeedVal = if (timeInSeconds > 0) (totalDistance / timeInSeconds) * 3.6f else 0f
+        val finalAvgSpeed = "%.1f km/h".format(avgSpeedVal)
+
+        if (totalDistance > 10) {
+            val trip = TripRecord(
+                date = currentDate,
+                distance = finalDistance,
+                duration = finalDuration,
+                avgSpeed = finalAvgSpeed
+            )
+            maintenanceViewModel.insertTrip(trip)
+            Toast.makeText(requireContext(), "Trip Saved Successfully!", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(requireContext(), "Trip too short to save!", Toast.LENGTH_SHORT).show()
+        }
+
+        // Buttons Reset
         btnStart.visibility = View.VISIBLE
         btnStop.visibility = View.GONE
+        tvSpeed.text = "0 km/h"
     }
 
     override fun onLocationChanged(location: Location) {
         if (isTripStarted) {
-
             val speedKmh = location.speed * 3.6f
             tvSpeed.text = "%.1f km/h".format(speedKmh)
 
             if (lastLocation != null) {
                 val distance = lastLocation!!.distanceTo(location)
                 totalDistance += distance
-
                 tvDistance.text = "%.2f km".format(totalDistance / 1000)
-
                 routeLine?.addPoint(GeoPoint(location.latitude, location.longitude))
             }
-
             lastLocation = location
-            map.invalidate() // Map Refresh
+            map.invalidate()
         }
     }
 
