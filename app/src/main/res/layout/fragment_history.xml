@@ -42,7 +42,18 @@
             android:layout_weight="1"
             android:text="Fuel Logs"
             android:layout_marginStart="8dp"
-            android:backgroundTint="#B0BEC5"/> </LinearLayout>
+            android:backgroundTint="#B0BEC5"/>
+
+        <Button
+            android:id="@+id/btnShowTrips"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Trips"
+            android:textSize="12sp"
+            android:backgroundTint="#B0BEC5"/>
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHistory"
