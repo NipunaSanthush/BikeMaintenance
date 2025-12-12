@@ -21,14 +21,24 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.example.bikemaintenance.data.TripRecord
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModel
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.osmdroid.bonuspack.routing.OSRMRoadManager
+import org.osmdroid.bonuspack.routing.RoadManager
+import org.osmdroid.bonuspack.routing.Road
 import org.osmdroid.config.Configuration
+import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.MapEventsOverlay
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
@@ -41,6 +51,10 @@ class MapFragment : Fragment(), LocationListener {
     private lateinit var map: MapView
     private lateinit var locationOverlay: MyLocationNewOverlay
     private lateinit var locationManager: LocationManager
+
+    // Navigation සදහා
+    private var destinationMarker: Marker? = null
+    private var navigationRoute: Polyline? = null
 
     private val maintenanceViewModel: MaintenanceViewModel by viewModels {
         MaintenanceViewModelFactory((requireActivity().application as BikeApplication).repository)
@@ -56,8 +70,7 @@ class MapFragment : Fragment(), LocationListener {
     private var totalDistance = 0.0f
     private var startTime = 0L
     private var lastLocation: Location? = null
-
-    private var routeLine: Polyline? = null
+    private var tripRouteLine: Polyline? = null
 
     private val timerHandler = Handler(Looper.getMainLooper())
     private val timerRunnable = object : Runnable {
@@ -67,7 +80,6 @@ class MapFragment : Fragment(), LocationListener {
                 val seconds = (millis / 1000).toInt()
                 val minutes = seconds / 60
                 val hrs = minutes / 60
-
                 tvDuration.text = String.format("%02d:%02d:%02d", hrs, minutes % 60, seconds % 60)
                 timerHandler.postDelayed(this, 1000)
             }
@@ -86,6 +98,7 @@ class MapFragment : Fragment(), LocationListener {
         savedInstanceState: Bundle?
     ): View? {
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(requireContext()))
+        Configuration.getInstance().userAgentValue = requireContext().packageName
         return inflater.inflate(R.layout.fragment_map, container, false)
     }
 
@@ -115,6 +128,68 @@ class MapFragment : Fragment(), LocationListener {
 
         btnStart.setOnClickListener { startTrip() }
         btnStop.setOnClickListener { stopTrip() }
+
+        setupMapClickEvents()
+    }
+
+    private fun setupMapClickEvents() {
+        val mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
+                return false
+            }
+
+            override fun longPressHelper(p: GeoPoint?): Boolean {
+                p?.let { destination ->
+                    val myLocation = locationOverlay.myLocation
+                    if (myLocation != null) {
+                        getRoute(myLocation, destination)
+                    } else {
+                        Toast.makeText(requireContext(), "Waiting for GPS...", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                return true
+            }
+        })
+        map.overlays.add(mapEventsOverlay)
+    }
+
+    private fun getRoute(start: GeoPoint, end: GeoPoint) {
+        Toast.makeText(requireContext(), "Calculating route...", Toast.LENGTH_SHORT).show()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val roadManager = OSRMRoadManager(requireContext(), Configuration.getInstance().userAgentValue)
+            val waypoints = ArrayList<GeoPoint>()
+            waypoints.add(start)
+            waypoints.add(end)
+
+            val road = roadManager.getRoad(waypoints)
+
+            withContext(Dispatchers.Main) {
+                if (road.mStatus != Road.STATUS_OK) {
+                    Toast.makeText(requireContext(), "Error finding route!", Toast.LENGTH_SHORT).show()
+                } else {
+                    navigationRoute?.let { map.overlays.remove(it) }
+                    destinationMarker?.let { map.overlays.remove(it) }
+
+                    navigationRoute = RoadManager.buildRoadOverlay(road)
+                    navigationRoute?.outlinePaint?.color = Color.BLUE
+                    navigationRoute?.outlinePaint?.strokeWidth = 15f
+                    map.overlays.add(navigationRoute)
+
+                    destinationMarker = Marker(map)
+                    destinationMarker?.position = end
+                    destinationMarker?.title = "Destination"
+                    destinationMarker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    map.overlays.add(destinationMarker)
+
+                    val distanceKm = road.mLength
+                    val durationMin = road.mDuration / 60
+                    Toast.makeText(requireContext(), "Distance: ${"%.1f".format(distanceKm)} km\nTime: ${"%.0f".format(durationMin)} min", Toast.LENGTH_LONG).show()
+
+                    map.invalidate()
+                }
+            }
+        }
     }
 
     private fun setupMapFeatures() {
@@ -144,16 +219,19 @@ class MapFragment : Fragment(), LocationListener {
         startTime = System.currentTimeMillis()
         lastLocation = null
 
-        routeLine?.let { map.overlays.remove(it) }
-        routeLine = Polyline().apply {
+        navigationRoute?.let { map.overlays.remove(it) }
+        destinationMarker?.let { map.overlays.remove(it) }
+        map.invalidate()
+
+        tripRouteLine?.let { map.overlays.remove(it) }
+        tripRouteLine = Polyline().apply {
             outlinePaint.color = Color.RED
             outlinePaint.strokeWidth = 10f
         }
-        map.overlays.add(routeLine)
+        map.overlays.add(tripRouteLine)
 
         btnStart.visibility = View.GONE
         btnStop.visibility = View.VISIBLE
-
         timerHandler.postDelayed(timerRunnable, 0)
     }
 
@@ -182,7 +260,6 @@ class MapFragment : Fragment(), LocationListener {
             Toast.makeText(requireContext(), "Trip too short to save!", Toast.LENGTH_SHORT).show()
         }
 
-        // Buttons Reset
         btnStart.visibility = View.VISIBLE
         btnStop.visibility = View.GONE
         tvSpeed.text = "0 km/h"
@@ -197,7 +274,7 @@ class MapFragment : Fragment(), LocationListener {
                 val distance = lastLocation!!.distanceTo(location)
                 totalDistance += distance
                 tvDistance.text = "%.2f km".format(totalDistance / 1000)
-                routeLine?.addPoint(GeoPoint(location.latitude, location.longitude))
+                tripRouteLine?.addPoint(GeoPoint(location.latitude, location.longitude))
             }
             lastLocation = location
             map.invalidate()
