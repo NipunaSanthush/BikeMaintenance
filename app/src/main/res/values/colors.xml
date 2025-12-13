@@ -18,4 +18,8 @@
     <color name="green_success">#2E7D32</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+
+    <color name="brand_primary_dark_mode">#0D2F4F</color>
+
+    <color name="header_background_color">@color/brand_primary</color>
 </resources>

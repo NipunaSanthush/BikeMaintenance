@@ -12,7 +12,7 @@
         android:id="@+id/viewHeader"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:background="?attr/colorPrimary"
+        android:background="@color/header_background_color"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="38dp"
         android:text="My Bike Manager"
         android:textColor="?attr/colorOnPrimary"
         android:textSize="24sp"
