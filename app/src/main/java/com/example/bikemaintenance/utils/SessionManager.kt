@@ -49,4 +49,9 @@ class SessionManager(context: Context) {
     fun getProfileImage(): String? {
         return prefs.getString(KEY_PROFILE_IMAGE, null)
     }
+
+    fun removeProfileImage() {
+        editor.remove(KEY_PROFILE_IMAGE)
+        editor.apply()
+    }
 }

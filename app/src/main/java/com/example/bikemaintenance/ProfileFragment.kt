@@ -1,19 +1,31 @@
 package com.example.bikemaintenance
 
+import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.bikemaintenance.utils.SessionManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.yalantis.ucrop.UCrop
+import java.io.File
 
 class ProfileFragment : Fragment() {
 
@@ -22,20 +34,22 @@ class ProfileFragment : Fragment() {
 
     private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-            imgProfile.setImageURI(uri)
-
-            val flag = Intent.FLAG_GRANT_READ_URI_PERMISSION
-            requireContext().contentResolver.takePersistableUriPermission(uri, flag)
-
-            session.saveProfileImage(uri.toString())
-            Toast.makeText(requireContext(), "Profile Photo Updated!", Toast.LENGTH_SHORT).show()
+            startCrop(uri)
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    private val cropActivityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val resultUri = UCrop.getOutput(result.data!!)
+            if (resultUri != null) {
+                saveAndShowImage(resultUri)
+            }
+        } else if (result.resultCode == UCrop.RESULT_ERROR) {
+            Toast.makeText(requireContext(), "Crop Error!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_profile, container, false)
     }
 
@@ -43,40 +57,116 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         session = SessionManager(requireContext())
-        val userDetails = session.getUserDetails()
-
         imgProfile = view.findViewById(R.id.imgProfile)
-        val tvName = view.findViewById<TextView>(R.id.tvProfileName)
-        val tvBike = view.findViewById<TextView>(R.id.tvProfileBikeModel)
-        val tvPlate = view.findViewById<TextView>(R.id.tvProfilePlate)
-        val btnLogout = view.findViewById<Button>(R.id.btnLogout)
+        val fabEdit = view.findViewById<FloatingActionButton>(R.id.fabEditProfile)
 
-        val btnSettings = view.findViewById<View>(R.id.btnSettings)
+        loadProfileImage()
 
-        val savedImage = session.getProfileImage()
-        if (savedImage != null) {
-            imgProfile.setImageURI(Uri.parse(savedImage))
+        fabEdit.setOnClickListener {
+            showProfileOptions()
         }
 
         imgProfile.setOnClickListener {
-            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            val savedImage = session.getProfileImage()
+            if (savedImage != null) {
+                showFullImage(Uri.parse(savedImage))
+            } else {
+                showProfileOptions()
+            }
         }
 
-        btnSettings.setOnClickListener {
-            val intent = Intent(requireContext(), SettingsActivity::class.java)
-            startActivity(intent)
+        val userDetails = session.getUserDetails()
+        view.findViewById<TextView>(R.id.tvProfileName).text = userDetails[SessionManager.KEY_NAME]
+        view.findViewById<TextView>(R.id.tvProfileBikeModel).text = userDetails[SessionManager.KEY_BIKE_MODEL]
+        view.findViewById<TextView>(R.id.tvProfilePlate).text = userDetails[SessionManager.KEY_LICENSE_PLATE]
+
+        view.findViewById<View>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }
 
-        tvName.text = userDetails[SessionManager.KEY_NAME]
-        tvBike.text = userDetails[SessionManager.KEY_BIKE_MODEL]
-        tvPlate.text = userDetails[SessionManager.KEY_LICENSE_PLATE]
-
-        btnLogout.setOnClickListener {
+        view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
             session.logoutUser()
-            val intent = Intent(requireContext(), SetupActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
+            startActivity(Intent(requireContext(), SetupActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
             requireActivity().finish()
         }
+    }
+
+    private fun showProfileOptions() {
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(R.layout.dialog_profile_options)
+
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_profile_options, null)
+        dialog.setContentView(view)
+
+        view.findViewById<View>(R.id.layoutChangePhoto).setOnClickListener {
+            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            dialog.dismiss()
+        }
+
+        view.findViewById<View>(R.id.layoutRemovePhoto).setOnClickListener {
+            session.removeProfileImage()
+            imgProfile.setImageResource(R.drawable.ic_profile)
+            Toast.makeText(requireContext(), "Photo Removed", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun startCrop(uri: Uri) {
+        val destinationFileName = "cropped_profile_${System.currentTimeMillis()}.jpg"
+        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, destinationFileName))
+
+        val options = UCrop.Options()
+        options.setCircleDimmedLayer(true)
+        options.setCompressionQuality(80)
+        options.setToolbarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary))
+        options.setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary_variant))
+
+        val uCrop = UCrop.of(uri, destinationUri)
+            .withAspectRatio(1f, 1f) // කොටු හැඩය (Square)
+            .withMaxResultSize(1000, 1000)
+            .withOptions(options)
+
+        val intent = uCrop.getIntent(requireContext())
+        cropActivityLauncher.launch(intent)
+    }
+
+    private fun saveAndShowImage(uri: Uri) {
+        session.saveProfileImage(uri.toString())
+
+        Glide.with(this)
+            .load(uri)
+            .circleCrop()
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+            .into(imgProfile)
+    }
+
+    private fun loadProfileImage() {
+        val savedImage = session.getProfileImage()
+        if (savedImage != null) {
+            Glide.with(this)
+                .load(Uri.parse(savedImage))
+                .circleCrop()
+                .placeholder(R.drawable.ic_profile)
+                .into(imgProfile)
+        }
+    }
+
+    private fun showFullImage(uri: Uri) {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_full_image)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+
+        val fullImg = dialog.findViewById<ImageView>(R.id.imgFullProfile)
+        Glide.with(this).load(uri).into(fullImg)
+
+        dialog.findViewById<View>(R.id.btnClose).setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 }
