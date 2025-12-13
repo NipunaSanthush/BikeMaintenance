@@ -9,9 +9,9 @@
     <color name="text_primary_light">#000000</color>
     <color name="text_secondary_light">#757575</color>
 
-    <color name="background_dark">#121212</color>
-    <color name="surface_dark">#1E1E1E</color>
-    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="background_dark">#1F1F1F</color>
+    <color name="surface_dark">#2C2C2C</color>
+    <color name="text_primary_dark">#E0E0E0</color>
     <color name="text_secondary_dark">#B0BEC5</color>
 
     <color name="red_error">#C62828</color>
