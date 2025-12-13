@@ -12,6 +12,8 @@ class SessionManager(context: Context) {
         const val KEY_NAME = "name"
         const val KEY_BIKE_MODEL = "bikeModel"
         const val KEY_LICENSE_PLATE = "licensePlate"
+
+        const val KEY_PROFILE_IMAGE = "profile_image"
     }
 
     fun createLoginSession(name: String, bikeModel: String, licensePlate: String) {
@@ -37,5 +39,14 @@ class SessionManager(context: Context) {
     fun logoutUser() {
         editor.clear()
         editor.commit()
+    }
+
+    fun saveProfileImage(uri: String) {
+        editor.putString(KEY_PROFILE_IMAGE, uri)
+        editor.apply()
+    }
+
+    fun getProfileImage(): String? {
+        return prefs.getString(KEY_PROFILE_IMAGE, null)
     }
 }
