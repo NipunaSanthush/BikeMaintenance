@@ -12,6 +12,7 @@
         android:id="@+id/tvHistoryTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:text="History Log"
         android:textSize="22sp"
         android:textStyle="bold"
@@ -35,7 +36,8 @@
             android:text="Services"
             android:layout_marginEnd="4dp"
             android:textColor="?attr/colorOnPrimary"
-            android:backgroundTint="?attr/colorPrimary"/>
+            android:backgroundTint="?attr/colorPrimary"
+            app:cornerRadius="15dp"/>
 
         <Button
             android:id="@+id/btnShowFuel"
@@ -45,7 +47,8 @@
             android:text="Fuel Logs"
             android:layout_marginEnd="4dp"
             android:textColor="?android:attr/textColorPrimary"
-            android:backgroundTint="?android:attr/colorButtonNormal"/>
+            android:backgroundTint="?android:attr/colorButtonNormal"
+            app:cornerRadius="15dp"/>
 
         <Button
             android:id="@+id/btnShowTrips"
@@ -55,7 +58,8 @@
             android:text="Trips"
             android:textSize="12sp"
             android:textColor="?android:attr/textColorPrimary"
-            android:backgroundTint="?android:attr/colorButtonNormal"/>
+            android:backgroundTint="?android:attr/colorButtonNormal"
+            app:cornerRadius="15dp"/>
 
     </LinearLayout>
 
