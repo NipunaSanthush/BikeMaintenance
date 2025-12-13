@@ -29,6 +29,11 @@ class ProfileFragment : Fragment() {
         val tvBike = view.findViewById<TextView>(R.id.tvProfileBikeModel)
         val tvPlate = view.findViewById<TextView>(R.id.tvProfilePlate)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
+        val btnSettings = view.findViewById<Button>(R.id.btnSettings)
+        btnSettings.setOnClickListener {
+            val intent = Intent(requireContext(), SettingsActivity::class.java)
+            startActivity(intent)
+        }
 
         tvName.text = userDetails[SessionManager.KEY_NAME]
         tvBike.text = userDetails[SessionManager.KEY_BIKE_MODEL]
