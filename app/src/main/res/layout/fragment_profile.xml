@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="?android:attr/colorBackground"
     tools:context=".ProfileFragment">
 
     <View
         android:id="@+id/viewHeaderProfile"
         android:layout_width="match_parent"
         android:layout_height="220dp"
-        android:background="#1565C0"
+        android:background="?attr/colorPrimary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -20,7 +20,7 @@
         android:layout_height="100dp"
         android:layout_marginTop="40dp"
         android:src="@drawable/ic_profile"
-        app:tint="@android:color/white"
+        app:tint="?attr/colorOnPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="User Name"
-        android:textColor="@android:color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,6 +44,7 @@
         android:layout_margin="24dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:layout_constraintTop_toBottomOf="@+id/viewHeaderProfile"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -58,7 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Bike Model"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp" />
 
             <TextView
@@ -67,21 +68,21 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:text="-"
-                android:textColor="#000000"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#E0E0E0"
+                android:background="?android:attr/listDivider"
                 android:layout_marginBottom="16dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="License Plate"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp" />
 
             <TextView
@@ -89,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="-"
-                android:textColor="#000000"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -97,12 +98,27 @@
     </androidx.cardview.widget.CardView>
 
     <Button
+        android:id="@+id/btnSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
+        android:text="Settings"
+        android:textColor="?android:attr/textColorPrimary"
+        android:backgroundTint="?android:attr/colorButtonNormal"
+        app:layout_constraintBottom_toTopOf="@+id/btnLogout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="32dp"
-        android:backgroundTint="#FF5252"
+        android:backgroundTint="@color/red_error"
         android:text="Log Out"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
