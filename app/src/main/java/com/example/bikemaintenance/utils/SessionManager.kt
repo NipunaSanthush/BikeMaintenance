@@ -12,8 +12,8 @@ class SessionManager(context: Context) {
         const val KEY_NAME = "name"
         const val KEY_BIKE_MODEL = "bikeModel"
         const val KEY_LICENSE_PLATE = "licensePlate"
-
         const val KEY_PROFILE_IMAGE = "profile_image"
+        const val KEY_CURRENT_MILEAGE = "current_mileage"
     }
 
     fun createLoginSession(name: String, bikeModel: String, licensePlate: String) {
@@ -53,5 +53,14 @@ class SessionManager(context: Context) {
     fun removeProfileImage() {
         editor.remove(KEY_PROFILE_IMAGE)
         editor.apply()
+    }
+
+    fun saveMileage(km: Float){
+        editor.putFloat(KEY_CURRENT_MILEAGE, km)
+        editor.apply()
+    }
+
+    fun getMileage(): Float {
+        return prefs.getFloat(KEY_CURRENT_MILEAGE, 0.0f)
     }
 }
