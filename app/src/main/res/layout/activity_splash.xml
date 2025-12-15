@@ -15,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Bike Manager"
+        android:text="MotoMate"
         android:textColor="#FFFFFF"
         android:textSize="32sp"
         android:textStyle="bold" />
