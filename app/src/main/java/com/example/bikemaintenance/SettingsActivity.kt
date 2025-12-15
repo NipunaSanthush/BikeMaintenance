@@ -22,18 +22,22 @@ class SettingsActivity : AppCompatActivity() {
         switchDark.isChecked = isDarkMode
         switchNotif.isChecked = isNotifOn
 
-        switchDark.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                savePreference("DARK_MODE", true)
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                savePreference("DARK_MODE", false)
+        switchDark.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (buttonView.isPressed) {
+                if (isChecked) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                    savePreference("DARK_MODE", true)
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                    savePreference("DARK_MODE", false)
+                }
             }
         }
 
-        switchNotif.setOnCheckedChangeListener { _, isChecked ->
-            savePreference("NOTIFICATIONS", isChecked)
+        switchNotif.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (buttonView.isPressed) {
+                savePreference("NOTIFICATIONS", isChecked)
+            }
         }
     }
 
