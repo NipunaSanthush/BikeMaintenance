@@ -15,8 +15,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.bikemaintenance.adapter.MaintenanceAdapter
 import com.example.bikemaintenance.data.FuelRecord
 import com.example.bikemaintenance.data.MaintenanceRecord
+import com.example.bikemaintenance.utils.SessionManager
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModel
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -28,6 +30,14 @@ class HomeFragment : Fragment() {
         MaintenanceViewModelFactory((requireActivity().application as BikeApplication).repository)
     }
 
+    private lateinit var tvTotalCost: TextView
+    private lateinit var tvHomeMileage: TextView
+    private lateinit var session: SessionManager
+    private lateinit var btnRide: MaterialButton
+
+    private var serviceTotal = 0.0
+    private var fuelTotal = 0.0
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,19 +48,22 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val session = com.example.bikemaintenance.utils.SessionManager(requireContext())
+        session = SessionManager(requireContext())
         val userDetails = session.getUserDetails()
-        val name = userDetails[com.example.bikemaintenance.utils.SessionManager.KEY_NAME]
+        val name = userDetails[SessionManager.KEY_NAME]
 
-        val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
-        tvTitle.text = "Hello, $name! 👋"
+        val tvWelcome = view.findViewById<TextView>(R.id.tvWelcome)
+        tvWelcome.text = "Welcome, $name!"
+
+        tvHomeMileage = view.findViewById(R.id.tvHomeMileage)
+        btnRide = view.findViewById(R.id.btnRideToggle)
+        tvTotalCost = view.findViewById(R.id.tvTotalCost)
+        val tvFuelEconomy = view.findViewById<TextView>(R.id.tvFuelEconomy)
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         val adapter = MaintenanceAdapter()
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        tvTotalCost = view.findViewById<TextView>(R.id.tvTotalCost)
 
         maintenanceViewModel.allRecords.observe(viewLifecycleOwner) { records ->
             records?.let {
@@ -64,8 +77,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-        val tvMileage = view.findViewById<TextView>(R.id.tvMileage)
-
         maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner){ fuelList ->
             if (fuelList != null && fuelList.size >= 2) {
                 val sortedList = fuelList.sortedBy { it.odometer }
@@ -77,19 +88,28 @@ class HomeFragment : Fragment() {
 
                 val mileage = distance / lastRecord.liters
 
-                tvMileage.text = "%.1f km/L".format(mileage)
+                tvFuelEconomy.text = "%.1f km/L".format(mileage)
             }else{
-                tvMileage.text = "- km/L"
+                tvFuelEconomy.text = "- km/L"
             }
-        }
 
-        maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner) {fuelList ->
             var total = 0.0
-            for (record in fuelList) {
-                total += record.cost
+            if (fuelList != null) {
+                for (record in fuelList) {
+                    total += record.cost
+                }
             }
             fuelTotal = total
             updateTotalCost()
+        }
+
+        btnRide.setOnClickListener {
+            if (btnRide.text == "Ride") {
+                btnRide.text = "Stop"
+                btnRide.setBackgroundColor(resources.getColor(android.R.color.holo_red_dark))
+            } else {
+                btnRide.text = "Ride"
+            }
         }
 
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAdd)
@@ -98,9 +118,11 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private var serviceTotal = 0.0
-    private var fuelTotal = 0.0
-    private lateinit var tvTotalCost: TextView
+    override fun onResume() {
+        super.onResume()
+        val currentMileage = session.getMileage()
+        tvHomeMileage.text = "$currentMileage km"
+    }
 
     private fun updateTotalCost() {
         val overallTotal = serviceTotal + fuelTotal
