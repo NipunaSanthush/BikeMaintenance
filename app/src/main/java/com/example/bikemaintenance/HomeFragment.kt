@@ -1,5 +1,11 @@
 package com.example.bikemaintenance
 
+import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +13,9 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -34,9 +42,30 @@ class HomeFragment : Fragment() {
     private lateinit var tvHomeMileage: TextView
     private lateinit var session: SessionManager
     private lateinit var btnRide: MaterialButton
+    private lateinit var tvFuelEconomy: TextView
 
     private var serviceTotal = 0.0
     private var fuelTotal = 0.0
+
+    private val mileageUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == RideTrackingService.ACTION_UPDATE_UI) {
+                updateMileageUI()
+            }
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val fineLocation = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+            val coarseLocation = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+
+            if (fineLocation || coarseLocation) {
+                startRideService()
+            } else {
+                Toast.makeText(requireContext(), "Location permission needed for tracking!", Toast.LENGTH_SHORT).show()
+            }
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,7 +87,7 @@ class HomeFragment : Fragment() {
         tvHomeMileage = view.findViewById(R.id.tvHomeMileage)
         btnRide = view.findViewById(R.id.btnRideToggle)
         tvTotalCost = view.findViewById(R.id.tvTotalCost)
-        val tvFuelEconomy = view.findViewById<TextView>(R.id.tvFuelEconomy)
+        tvFuelEconomy = view.findViewById(R.id.tvFuelEconomy)
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         val adapter = MaintenanceAdapter()
@@ -80,14 +109,10 @@ class HomeFragment : Fragment() {
         maintenanceViewModel.allFuelRecords.observe(viewLifecycleOwner){ fuelList ->
             if (fuelList != null && fuelList.size >= 2) {
                 val sortedList = fuelList.sortedBy { it.odometer }
-
                 val lastRecord = sortedList.last()
                 val prevRecord = sortedList[sortedList.size - 2]
-
                 val distance = lastRecord.odometer - prevRecord.odometer
-
                 val mileage = distance / lastRecord.liters
-
                 tvFuelEconomy.text = "%.1f km/L".format(mileage)
             }else{
                 tvFuelEconomy.text = "- km/L"
@@ -103,12 +128,13 @@ class HomeFragment : Fragment() {
             updateTotalCost()
         }
 
+        updateRideButtonState()
+
         btnRide.setOnClickListener {
-            if (btnRide.text == "Ride") {
-                btnRide.text = "Stop"
-                btnRide.setBackgroundColor(resources.getColor(android.R.color.holo_red_dark))
+            if (session.isTracking()) {
+                stopRideService()
             } else {
-                btnRide.text = "Ride"
+                checkPermissionsAndStart()
             }
         }
 
@@ -120,8 +146,76 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        updateMileageUI()
+
+        val filter = IntentFilter(RideTrackingService.ACTION_UPDATE_UI)
+
+        ContextCompat.registerReceiver(
+            requireContext(),
+            mileageUpdateReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try {
+            requireContext().unregisterReceiver(mileageUpdateReceiver)
+        } catch (e: Exception) {
+        }
+    }
+
+    private fun updateMileageUI() {
         val currentMileage = session.getMileage()
-        tvHomeMileage.text = "$currentMileage km"
+        tvHomeMileage.text = "%.1f km".format(currentMileage)
+    }
+
+    private fun checkPermissionsAndStart() {
+        val permissions = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        requestPermissionLauncher.launch(permissions.toTypedArray())
+    }
+
+    private fun startRideService() {
+        val intent = Intent(requireContext(), RideTrackingService::class.java)
+        intent.action = RideTrackingService.ACTION_START
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            requireContext().startForegroundService(intent)
+        } else {
+            requireContext().startService(intent)
+        }
+
+        session.setTrackingState(true)
+        updateRideButtonState()
+        Toast.makeText(requireContext(), "Ride Started! GPS On", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun stopRideService() {
+        val intent = Intent(requireContext(), RideTrackingService::class.java)
+        intent.action = RideTrackingService.ACTION_STOP
+        requireContext().startService(intent)
+
+        session.setTrackingState(false)
+        updateRideButtonState()
+        Toast.makeText(requireContext(), "Ride Stopped. Mileage Saved!", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateRideButtonState() {
+        if (session.isTracking()) {
+            btnRide.text = "Stop Ride"
+            btnRide.setBackgroundColor(resources.getColor(android.R.color.holo_red_dark))
+            btnRide.setIconResource(R.drawable.ic_close)
+        } else {
+            btnRide.text = "Start Ride"
+            btnRide.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.ride_button_start_color))
+            btnRide.setIconResource(R.drawable.ic_motorcycle)
+        }
     }
 
     private fun updateTotalCost() {
