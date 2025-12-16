@@ -22,4 +22,6 @@
     <color name="brand_primary_dark_mode">#0D2F4F</color>
 
     <color name="header_background_color">@color/brand_primary</color>
+
+    <color name="ride_button_start_color">#1565C0</color>
 </resources>
