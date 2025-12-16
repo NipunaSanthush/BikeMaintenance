@@ -38,6 +38,11 @@
             android:exported="false"
             android:label="Settings" />
 
+        <service
+            android:name=".RideTrackingService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
+
     </application>
 
 </manifest>
