@@ -14,6 +14,7 @@ class SessionManager(context: Context) {
         const val KEY_LICENSE_PLATE = "licensePlate"
         const val KEY_PROFILE_IMAGE = "profile_image"
         const val KEY_CURRENT_MILEAGE = "current_mileage"
+        const val KEY_IS_TRACKING = "is_tracking"
     }
 
     fun createLoginSession(name: String, bikeModel: String, licensePlate: String) {
@@ -62,5 +63,14 @@ class SessionManager(context: Context) {
 
     fun getMileage(): Float {
         return prefs.getFloat(KEY_CURRENT_MILEAGE, 0.0f)
+    }
+
+    fun setTrackingState(isTracking: Boolean) {
+        editor.putBoolean(KEY_IS_TRACKING, isTracking)
+        editor.apply()
+    }
+
+    fun isTracking(): Boolean {
+        return prefs.getBoolean(KEY_IS_TRACKING, false)
     }
 }
