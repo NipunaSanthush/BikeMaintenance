@@ -4,59 +4,89 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class SessionManager(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-    private val editor: SharedPreferences.Editor = prefs.edit()
 
-    companion object{
+    private var prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    private var editor: SharedPreferences.Editor = prefs.edit()
+
+    companion object {
+        const val PREF_NAME = "MotoMateSession"
+
         const val KEY_IS_LOGGED_IN = "isLoggedIn"
         const val KEY_NAME = "name"
-        const val KEY_BIKE_MODEL = "bikeModel"
-        const val KEY_LICENSE_PLATE = "licensePlate"
-        const val KEY_PROFILE_IMAGE = "profile_image"
+        const val KEY_USERNAME = "username"
+        const val KEY_PASSWORD = "password"
+        const val KEY_MOBILE = "mobile"
+        const val KEY_ADDRESS = "address"
+        const val KEY_BIRTHDAY = "birthday"
+
+        const val KEY_BIKE_BRAND = "bike_brand"
+        const val KEY_BIKE_MODEL = "bike_model"
+        const val KEY_BIKE_NUMBER = "bike_number"
+
         const val KEY_CURRENT_MILEAGE = "current_mileage"
         const val KEY_IS_TRACKING = "is_tracking"
     }
 
-    fun createLoginSession(name: String, bikeModel: String, licensePlate: String) {
-        editor.putBoolean(KEY_IS_LOGGED_IN, true)
+    fun createAccount(
+        name: String, username: String, pass: String,
+        mobile: String, address: String, birthday: String,
+        bikeBrand: String, bikeModel: String, bikeNumber: String
+    ) {
         editor.putString(KEY_NAME, name)
+        editor.putString(KEY_USERNAME, username)
+        editor.putString(KEY_PASSWORD, pass)
+        editor.putString(KEY_MOBILE, mobile)
+        editor.putString(KEY_ADDRESS, address)
+        editor.putString(KEY_BIRTHDAY, birthday)
+
+        editor.putString(KEY_BIKE_BRAND, bikeBrand)
         editor.putString(KEY_BIKE_MODEL, bikeModel)
-        editor.putString(KEY_LICENSE_PLATE, licensePlate)
+        editor.putString(KEY_BIKE_NUMBER, bikeNumber)
+
+        editor.putBoolean(KEY_IS_LOGGED_IN, true)
+
         editor.apply()
     }
 
-    fun getUserDetails(): HashMap<String, String> {
-        val user = HashMap<String, String>()
-        user[KEY_NAME] = prefs.getString(KEY_NAME, "User")!!
-        user[KEY_BIKE_MODEL] = prefs.getString(KEY_BIKE_MODEL, "Bike")!!
-        user[KEY_LICENSE_PLATE] = prefs.getString(KEY_LICENSE_PLATE, "")!!
-        return user
+    fun validateLogin(usernameInput: String, passwordInput: String): Boolean {
+        val savedUsername = prefs.getString(KEY_USERNAME, null)
+        val savedPassword = prefs.getString(KEY_PASSWORD, null)
+
+        return if (savedUsername == usernameInput && savedPassword == passwordInput) {
+            editor.putBoolean(KEY_IS_LOGGED_IN, true)
+            editor.apply()
+            true
+        } else {
+            false
+        }
     }
 
-    fun isLoggedIn(): Boolean{
-        return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
+    fun getUserDetails(): HashMap<String, String?> {
+        val details = HashMap<String, String?>()
+
+        details[KEY_NAME] = prefs.getString(KEY_NAME, "User")
+        details[KEY_USERNAME] = prefs.getString(KEY_USERNAME, "")
+        details[KEY_MOBILE] = prefs.getString(KEY_MOBILE, "")
+        details[KEY_ADDRESS] = prefs.getString(KEY_ADDRESS, "")
+        details[KEY_BIRTHDAY] = prefs.getString(KEY_BIRTHDAY, "")
+
+        details[KEY_BIKE_BRAND] = prefs.getString(KEY_BIKE_BRAND, "Bike")
+        details[KEY_BIKE_MODEL] = prefs.getString(KEY_BIKE_MODEL, "Model")
+        details[KEY_BIKE_NUMBER] = prefs.getString(KEY_BIKE_NUMBER, "")
+
+        return details
     }
 
     fun logoutUser() {
-        editor.clear()
-        editor.commit()
-    }
-
-    fun saveProfileImage(uri: String) {
-        editor.putString(KEY_PROFILE_IMAGE, uri)
+        editor.putBoolean(KEY_IS_LOGGED_IN, false)
         editor.apply()
     }
 
-    fun getProfileImage(): String? {
-        return prefs.getString(KEY_PROFILE_IMAGE, null)
+    fun isLoggedIn(): Boolean {
+        return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
     }
 
-    fun removeProfileImage() {
-        editor.remove(KEY_PROFILE_IMAGE)
-        editor.apply()
-    }
-
-    fun saveMileage(km: Float){
+    fun saveMileage(km: Float) {
         editor.putFloat(KEY_CURRENT_MILEAGE, km)
         editor.apply()
     }
