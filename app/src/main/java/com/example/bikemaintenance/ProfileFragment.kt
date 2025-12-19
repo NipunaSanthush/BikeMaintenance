@@ -77,6 +77,7 @@ class ProfileFragment : Fragment() {
 
         val userDetails = session.getUserDetails()
         view.findViewById<TextView>(R.id.tvProfileName).text = userDetails[SessionManager.KEY_NAME]
+
         view.findViewById<TextView>(R.id.tvProfileBikeModel).text = userDetails[SessionManager.KEY_BIKE_MODEL]
         view.findViewById<TextView>(R.id.tvProfilePlate).text = userDetails[SessionManager.KEY_LICENSE_PLATE]
 
@@ -86,17 +87,15 @@ class ProfileFragment : Fragment() {
 
         view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
             session.logoutUser()
-            startActivity(Intent(requireContext(), SetupActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
+            val intent = Intent(requireContext(), SignUpActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
             requireActivity().finish()
         }
     }
 
     private fun showProfileOptions() {
         val dialog = BottomSheetDialog(requireContext())
-        dialog.setContentView(R.layout.dialog_profile_options)
-
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_profile_options, null)
         dialog.setContentView(view)
 
@@ -122,11 +121,17 @@ class ProfileFragment : Fragment() {
         val options = UCrop.Options()
         options.setCircleDimmedLayer(true)
         options.setCompressionQuality(80)
-        options.setToolbarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary))
-        options.setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary_variant))
+
+        try {
+            options.setToolbarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary))
+            options.setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary_variant))
+        } catch (e: Exception) {
+            options.setToolbarColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark))
+            options.setStatusBarColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark))
+        }
 
         val uCrop = UCrop.of(uri, destinationUri)
-            .withAspectRatio(1f, 1f) // කොටු හැඩය (Square)
+            .withAspectRatio(1f, 1f)
             .withMaxResultSize(1000, 1000)
             .withOptions(options)
 
