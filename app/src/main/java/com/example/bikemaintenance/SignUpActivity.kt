@@ -11,17 +11,8 @@ import java.util.Calendar
 
 class SignUpActivity : AppCompatActivity() {
 
-    private lateinit var spinnerBrand: Spinner
-    private lateinit var spinnerModel: Spinner
     private lateinit var session: SessionManager
-
-    private val bikeData = mapOf(
-        "Honda" to listOf("AX-1", "Dio", "Hornet", "CBR", "CD125"),
-        "Yamaha" to listOf("FZ", "R15", "TW200", "MT-15", "RayZR"),
-        "Bajaj" to listOf("Pulsar", "CT100", "Discover", "Platina"),
-        "TVS" to listOf("Apache", "NTorq", "Raider", "Scooty Pep"),
-        "Suzuki" to listOf("Gixxer", "GN125", "Burgman")
-    )
+    private lateinit var ivBrandLogo: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,14 +24,17 @@ class SignUpActivity : AppCompatActivity() {
         val etBirthday = findViewById<EditText>(R.id.etBirthday)
         val etMobile = findViewById<EditText>(R.id.etMobile)
         val etAddress = findViewById<EditText>(R.id.etAddress)
+
+        val etBikeModel = findViewById<EditText>(R.id.etBikeModel)
+
         val etBikeNumber = findViewById<EditText>(R.id.etBikeNumber)
         val etUsername = findViewById<EditText>(R.id.etUsername)
         val etPassword = findViewById<EditText>(R.id.etPassword)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
         val tvLoginLink = findViewById<TextView>(R.id.tvLoginLink)
 
-        spinnerBrand = findViewById(R.id.spinnerBrand)
-        spinnerModel = findViewById(R.id.spinnerModel)
+        val spinnerBrand = findViewById<Spinner>(R.id.spinnerBrand)
+        ivBrandLogo = findViewById(R.id.ivBrandLogo)
 
         etBirthday.setOnClickListener {
             val c = Calendar.getInstance()
@@ -54,7 +48,7 @@ class SignUpActivity : AppCompatActivity() {
             dpd.show()
         }
 
-        val brands = bikeData.keys.toList()
+        val brands = listOf("Honda", "Yamaha", "Bajaj", "TVS", "Suzuki", "Other")
         val brandAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, brands)
         brandAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerBrand.adapter = brandAdapter
@@ -62,8 +56,7 @@ class SignUpActivity : AppCompatActivity() {
         spinnerBrand.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedBrand = brands[position]
-                val models = bikeData[selectedBrand] ?: listOf()
-                updateModelSpinner(models)
+                updateBrandLogo(selectedBrand)
             }
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
@@ -73,17 +66,21 @@ class SignUpActivity : AppCompatActivity() {
             val dob = etBirthday.text.toString()
             val mobile = etMobile.text.toString()
             val address = etAddress.text.toString()
+
             val bikeNum = etBikeNumber.text.toString()
             val username = etUsername.text.toString()
             val pass = etPassword.text.toString()
 
             val brand = spinnerBrand.selectedItem.toString()
-            val model = spinnerModel.selectedItem?.toString() ?: ""
+            val model = etBikeModel.text.toString()
 
-            if (name.isEmpty() || dob.isEmpty() || mobile.isEmpty() || username.isEmpty() || pass.isEmpty()) {
+            if (name.isEmpty() || dob.isEmpty() || mobile.isEmpty() || username.isEmpty() || pass.isEmpty() || model.isEmpty()) {
                 Toast.makeText(this, "Please fill all details!", Toast.LENGTH_SHORT).show()
             } else {
-                session.createAccount(name, username, pass, mobile, address, dob, brand, model, bikeNum)
+                session.createAccount(
+                    name, username, pass, mobile, address, dob,
+                    brand, model, bikeNum
+                )
 
                 Toast.makeText(this, "Account Created! Welcome $name", Toast.LENGTH_SHORT).show()
 
@@ -98,9 +95,20 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateModelSpinner(models: List<String>) {
-        val modelAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, models)
-        modelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerModel.adapter = modelAdapter
+    private fun updateBrandLogo(brand: String) {
+        val logoRes = when (brand) {
+            "Honda" -> R.drawable.honda
+            "Yamaha" -> R.drawable.yamaha
+            "Bajaj" -> R.drawable.bajaj
+            "TVS" -> R.drawable.tvs
+            "Suzuki" -> R.drawable.suzuki
+            else -> R.drawable.ic_motorcycle
+        }
+
+        try {
+            ivBrandLogo.setImageResource(logoRes)
+        } catch (e: Exception) {
+            ivBrandLogo.setImageResource(R.drawable.ic_motorcycle)
+        }
     }
 }
