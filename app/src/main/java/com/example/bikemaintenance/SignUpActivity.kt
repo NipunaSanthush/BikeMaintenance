@@ -49,8 +49,8 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         val brands = listOf("Honda", "Yamaha", "Bajaj", "TVS", "Suzuki", "Other")
-        val brandAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, brands)
-        brandAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val brandAdapter = ArrayAdapter(this, R.layout.spinner_item, brands)
+        brandAdapter.setDropDownViewResource(R.layout.spinner_item)
         spinnerBrand.adapter = brandAdapter
 
         spinnerBrand.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
