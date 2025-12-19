@@ -44,11 +44,13 @@
             style="@style/InputStyle"
             android:hint="Birthday (YYYY-MM-DD)"
             android:focusable="false"
-            android:inputType="date"/> <EditText
-        android:id="@+id/etMobile"
-        style="@style/InputStyle"
-        android:hint="Mobile Number"
-        android:inputType="phone"/>
+            android:inputType="date"/>
+
+        <EditText
+            android:id="@+id/etMobile"
+            style="@style/InputStyle"
+            android:hint="Mobile Number"
+            android:inputType="phone"/>
 
         <EditText
             android:id="@+id/etAddress"
@@ -68,25 +70,34 @@
             android:textSize="12sp"
             android:layout_marginTop="8dp"/>
 
-        <Spinner
-            android:id="@+id/spinnerBrand"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select Model"
-            android:textSize="12sp"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
-        <Spinner
-            android:id="@+id/spinnerModel"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:layout_marginBottom="12dp"/>
+            <Spinner
+                android:id="@+id/spinnerBrand"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@android:drawable/btn_dropdown"/>
+
+            <ImageView
+                android:id="@+id/ivBrandLogo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/ic_motorcycle"
+                android:scaleType="fitCenter"/>
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/etBikeModel"
+            style="@style/InputStyle"
+            android:hint="Bike Model (Ex: AX-1, Dio, FZ)"
+            android:inputType="textCapWords"/>
 
         <EditText
             android:id="@+id/etBikeNumber"
