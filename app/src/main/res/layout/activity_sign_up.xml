@@ -82,7 +82,8 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:background="@android:drawable/btn_dropdown"/>
+                android:background="@android:drawable/btn_dropdown"
+                android:theme="@style/ThemeOverlay.AppCompat.Light"/>
 
             <ImageView
                 android:id="@+id/ivBrandLogo"
