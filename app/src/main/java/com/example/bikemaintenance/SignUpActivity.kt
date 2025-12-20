@@ -49,7 +49,7 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         val brands = listOf("Honda", "Yamaha", "Bajaj", "TVS", "Suzuki", "Other")
-        val brandAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, brands)
+        val brandAdapter = ArrayAdapter(this, R.layout.custom_spinner_text, brands)
         brandAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerBrand.adapter = brandAdapter
 
