@@ -42,6 +42,13 @@
             android:name=".RideTrackingService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BikeMaintenance.UCrop"
+            tools:ignore="LockedOrientationActivity" />
+
     </application>
 
 </manifest>

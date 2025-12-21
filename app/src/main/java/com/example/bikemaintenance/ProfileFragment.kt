@@ -141,9 +141,13 @@ class ProfileFragment : Fragment() {
         try {
             options.setToolbarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary))
             options.setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.brand_primary_variant))
+
+            options.setToolbarWidgetColor(Color.WHITE)
+
         } catch (e: Exception) {
             options.setToolbarColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark))
             options.setStatusBarColor(ContextCompat.getColor(requireContext(), android.R.color.holo_blue_dark))
+            options.setToolbarWidgetColor(Color.WHITE)
         }
 
         val uCrop = UCrop.of(uri, destinationUri)

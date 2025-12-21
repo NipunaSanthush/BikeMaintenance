@@ -19,4 +19,9 @@
         <item name="android:textColorSecondary">@color/text_secondary_dark</item>
 
     </style>
+
+    <style name="Theme.BikeMaintenance.UCrop" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
+    </style>
 </resources>
