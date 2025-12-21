@@ -91,7 +91,9 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         tvLoginLink.setOnClickListener {
-            Toast.makeText(this, "Login Page Coming Soon!", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 
