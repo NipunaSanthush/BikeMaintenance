@@ -13,7 +13,10 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,9 +32,10 @@ import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.osmdroid.bonuspack.routing.OSRMRoadManager
-import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.bonuspack.routing.Road
+import org.osmdroid.bonuspack.routing.RoadManager
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -42,6 +46,8 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.net.HttpURLConnection
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,7 +58,9 @@ class MapFragment : Fragment(), LocationListener {
     private lateinit var locationOverlay: MyLocationNewOverlay
     private lateinit var locationManager: LocationManager
 
-    // Navigation සදහා
+    private lateinit var etSearch: EditText
+    private lateinit var btnSearch: ImageButton
+
     private var destinationMarker: Marker? = null
     private var navigationRoute: Polyline? = null
 
@@ -112,6 +120,9 @@ class MapFragment : Fragment(), LocationListener {
         btnStart = view.findViewById(R.id.btnStartTrip)
         btnStop = view.findViewById(R.id.btnStopTrip)
 
+        etSearch = view.findViewById(R.id.etSearch)
+        btnSearch = view.findViewById(R.id.btnSearch)
+
         map.setTileSource(TileSourceFactory.MAPNIK)
         map.setMultiTouchControls(true)
         map.controller.setZoom(18.0)
@@ -129,12 +140,88 @@ class MapFragment : Fragment(), LocationListener {
         btnStart.setOnClickListener { startTrip() }
         btnStop.setOnClickListener { stopTrip() }
 
+        btnSearch.setOnClickListener {
+            val locationName = etSearch.text.toString()
+            if (locationName.isNotEmpty()) {
+                searchLocation(locationName)
+            }
+        }
+
+        etSearch.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val locationName = etSearch.text.toString()
+                if (locationName.isNotEmpty()) {
+                    searchLocation(locationName)
+                }
+                true
+            } else {
+                false
+            }
+        }
+
         setupMapClickEvents()
+    }
+
+    private fun searchLocation(locationName: String) {
+        Toast.makeText(requireContext(), "Searching...", Toast.LENGTH_SHORT).show()
+
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(etSearch.windowToken, 0)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val urlStr = "https://nominatim.openstreetmap.org/search?q=$locationName&format=json&limit=1"
+                val url = URL(urlStr)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.setRequestProperty("User-Agent", "BikeMaintenanceApp/1.0")
+
+                val data = connection.inputStream.bufferedReader().readText()
+                val jsonArray = JSONArray(data)
+
+                if (jsonArray.length() > 0) {
+                    val place = jsonArray.getJSONObject(0)
+                    val lat = place.getDouble("lat")
+                    val lon = place.getDouble("lon")
+                    val displayName = place.getString("display_name")
+
+                    val destinationPoint = GeoPoint(lat, lon)
+
+                    withContext(Dispatchers.Main) {
+                        map.controller.animateTo(destinationPoint)
+                        map.controller.setZoom(16.0)
+
+                        destinationMarker?.let { map.overlays.remove(it) }
+                        destinationMarker = Marker(map)
+                        destinationMarker?.position = destinationPoint
+                        destinationMarker?.title = displayName
+                        destinationMarker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        map.overlays.add(destinationMarker)
+
+                        val myLocation = locationOverlay.myLocation
+                        if (myLocation != null) {
+                            getRoute(myLocation, destinationPoint)
+                        } else {
+                            Toast.makeText(requireContext(), "Location found! Waiting for GPS to draw route...", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), "Place not found!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Search Error Check Internet!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun setupMapClickEvents() {
         val mapEventsOverlay = MapEventsOverlay(object : MapEventsReceiver {
             override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
+                etSearch.clearFocus()
                 return false
             }
 
@@ -169,18 +256,19 @@ class MapFragment : Fragment(), LocationListener {
                     Toast.makeText(requireContext(), "Error finding route!", Toast.LENGTH_SHORT).show()
                 } else {
                     navigationRoute?.let { map.overlays.remove(it) }
-                    destinationMarker?.let { map.overlays.remove(it) }
 
                     navigationRoute = RoadManager.buildRoadOverlay(road)
                     navigationRoute?.outlinePaint?.color = Color.BLUE
                     navigationRoute?.outlinePaint?.strokeWidth = 15f
                     map.overlays.add(navigationRoute)
 
-                    destinationMarker = Marker(map)
-                    destinationMarker?.position = end
-                    destinationMarker?.title = "Destination"
-                    destinationMarker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    map.overlays.add(destinationMarker)
+                    if (destinationMarker == null) {
+                        destinationMarker = Marker(map)
+                        destinationMarker?.position = end
+                        destinationMarker?.title = "Destination"
+                        destinationMarker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        map.overlays.add(destinationMarker)
+                    }
 
                     val distanceKm = road.mLength
                     val durationMin = road.mDuration / 60
@@ -221,6 +309,7 @@ class MapFragment : Fragment(), LocationListener {
 
         navigationRoute?.let { map.overlays.remove(it) }
         destinationMarker?.let { map.overlays.remove(it) }
+        destinationMarker = null
         map.invalidate()
 
         tripRouteLine?.let { map.overlays.remove(it) }
