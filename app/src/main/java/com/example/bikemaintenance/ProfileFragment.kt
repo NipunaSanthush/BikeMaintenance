@@ -76,10 +76,26 @@ class ProfileFragment : Fragment() {
         }
 
         val userDetails = session.getUserDetails()
-        view.findViewById<TextView>(R.id.tvProfileName).text = userDetails[SessionManager.KEY_NAME]
 
-        view.findViewById<TextView>(R.id.tvProfileBikeModel).text = userDetails[SessionManager.KEY_BIKE_MODEL]
-        view.findViewById<TextView>(R.id.tvProfilePlate).text = userDetails[SessionManager.KEY_LICENSE_PLATE]
+        val name = userDetails[SessionManager.KEY_NAME] ?: "User"
+        val username = userDetails[SessionManager.KEY_USERNAME] ?: ""
+        val mobile = userDetails[SessionManager.KEY_MOBILE] ?: "-"
+        val birthday = userDetails[SessionManager.KEY_BIRTHDAY] ?: "-"
+        val address = userDetails[SessionManager.KEY_ADDRESS] ?: "-"
+
+        val bikeBrand = userDetails[SessionManager.KEY_BIKE_BRAND] ?: ""
+        val bikeModel = userDetails[SessionManager.KEY_BIKE_MODEL] ?: ""
+        val bikePlate = userDetails[SessionManager.KEY_LICENSE_PLATE] ?: "-"
+
+        view.findViewById<TextView>(R.id.tvProfileName).text = name
+        view.findViewById<TextView>(R.id.tvProfileUsername).text = "@$username"
+        view.findViewById<TextView>(R.id.tvProfileMobile).text = mobile
+        view.findViewById<TextView>(R.id.tvProfileBirthday).text = birthday
+        view.findViewById<TextView>(R.id.tvProfileAddress).text = address
+
+        val fullBikeModel = "$bikeBrand $bikeModel".trim()
+        view.findViewById<TextView>(R.id.tvProfileBikeModel).text = fullBikeModel
+        view.findViewById<TextView>(R.id.tvProfilePlate).text = bikePlate
 
         view.findViewById<View>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
@@ -87,7 +103,7 @@ class ProfileFragment : Fragment() {
 
         view.findViewById<Button>(R.id.btnLogout).setOnClickListener {
             session.logoutUser()
-            val intent = Intent(requireContext(), SignUpActivity::class.java)
+            val intent = Intent(requireContext(), LoginActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
             requireActivity().finish()
