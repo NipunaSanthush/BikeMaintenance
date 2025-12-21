@@ -82,4 +82,6 @@ dependencies {
     implementation("com.github.yalantis:ucrop:2.2.8")
 
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    implementation("com.github.ybq:Android-SpinKit:1.4.0")
 }
