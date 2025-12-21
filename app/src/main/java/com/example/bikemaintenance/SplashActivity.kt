@@ -30,7 +30,7 @@ class SplashActivity : AppCompatActivity() {
             if (session.isLoggedIn()) {
                 startActivity(Intent(this, MainActivity::class.java))
             } else {
-                startActivity(Intent(this, SignUpActivity::class.java))
+                startActivity(Intent(this, LoginActivity::class.java))
             }
             finish()
         }, 3000)
