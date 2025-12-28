@@ -1,10 +1,12 @@
 package com.example.bikemaintenance
 
 import android.Manifest
+import android.app.DatePickerDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,6 +17,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -29,8 +32,10 @@ import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class HomeFragment : Fragment() {
 
@@ -43,6 +48,11 @@ class HomeFragment : Fragment() {
     private lateinit var session: SessionManager
     private lateinit var btnRide: MaterialButton
     private lateinit var tvFuelEconomy: TextView
+
+    private lateinit var tvLicenseStatus: TextView
+    private lateinit var tvInsuranceStatus: TextView
+    private lateinit var cardLicense: CardView
+    private lateinit var cardInsurance: CardView
 
     private var serviceTotal = 0.0
     private var fuelTotal = 0.0
@@ -88,6 +98,16 @@ class HomeFragment : Fragment() {
         btnRide = view.findViewById(R.id.btnRideToggle)
         tvTotalCost = view.findViewById(R.id.tvTotalCost)
         tvFuelEconomy = view.findViewById(R.id.tvFuelEconomy)
+
+        tvLicenseStatus = view.findViewById(R.id.tvLicenseStatus)
+        tvInsuranceStatus = view.findViewById(R.id.tvInsuranceStatus)
+        cardLicense = view.findViewById(R.id.cardLicense)
+        cardInsurance = view.findViewById(R.id.cardInsurance)
+
+        loadReminders()
+
+        cardLicense.setOnClickListener { showDatePicker("license") }
+        cardInsurance.setOnClickListener { showDatePicker("insurance") }
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         val adapter = MaintenanceAdapter()
@@ -147,6 +167,7 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateMileageUI()
+        loadReminders()
 
         val filter = IntentFilter(RideTrackingService.ACTION_UPDATE_UI)
 
@@ -311,5 +332,54 @@ class HomeFragment : Fragment() {
         }
         builder.setNegativeButton("Cancel", null)
         builder.show()
+    }
+
+    private fun showDatePicker(type: String) {
+        val calendar = Calendar.getInstance()
+        val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, day ->
+            val selectedDate = "$year-${month + 1}-$day"
+            val prefs = requireContext().getSharedPreferences("bike_reminders", Context.MODE_PRIVATE)
+            prefs.edit().putString("${type}_date", selectedDate).apply()
+            loadReminders()
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+        datePickerDialog.show()
+    }
+
+    private fun loadReminders() {
+        val prefs = requireContext().getSharedPreferences("bike_reminders", Context.MODE_PRIVATE)
+        val licenseDate = prefs.getString("license_date", null)
+        val insuranceDate = prefs.getString("insurance_date", null)
+
+        if (licenseDate != null) updateStatusUI(licenseDate, tvLicenseStatus)
+        if (insuranceDate != null) updateStatusUI(insuranceDate, tvInsuranceStatus)
+    }
+
+    private fun updateStatusUI(dateStr: String, textView: TextView) {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        try {
+            val expiryDate = sdf.parse(dateStr)
+            val currentDate = Date()
+
+            if (expiryDate != null) {
+                val diff = expiryDate.time - currentDate.time
+                val daysLeft = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS)
+
+                if (daysLeft < 0) {
+                    textView.text = "EXPIRED!"
+                    textView.setBackgroundColor(Color.RED)
+                    textView.setTextColor(Color.WHITE)
+                } else if (daysLeft < 30) {
+                    textView.text = "$daysLeft Days Left"
+                    textView.setBackgroundColor(Color.parseColor("#FFC107"))
+                    textView.setTextColor(Color.BLACK)
+                } else {
+                    textView.text = "$daysLeft Days Left"
+                    textView.setBackgroundColor(Color.parseColor("#4CAF50"))
+                    textView.setTextColor(Color.WHITE)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
