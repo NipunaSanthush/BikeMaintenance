@@ -34,6 +34,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Services"
+            android:textSize="12sp"
             android:layout_marginEnd="4dp"
             android:textColor="?attr/colorOnPrimary"
             android:backgroundTint="?attr/colorPrimary"
@@ -45,8 +46,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Fuel Logs"
+            android:textSize="12sp"
             android:layout_marginEnd="4dp"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?attr/colorOnPrimary"
             android:backgroundTint="?android:attr/colorButtonNormal"
             app:cornerRadius="15dp"/>
 
@@ -57,7 +59,7 @@
             android:layout_weight="1"
             android:text="Trips"
             android:textSize="12sp"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="?attr/colorOnPrimary"
             android:backgroundTint="?android:attr/colorButtonNormal"
             app:cornerRadius="15dp"/>
 
