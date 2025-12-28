@@ -29,6 +29,7 @@ import androidx.preference.PreferenceManager
 import com.example.bikemaintenance.data.TripRecord
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModel
 import com.example.bikemaintenance.viewmodel.MaintenanceViewModelFactory
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,6 +61,7 @@ class MapFragment : Fragment(), LocationListener {
 
     private lateinit var etSearch: EditText
     private lateinit var btnSearch: ImageButton
+    private lateinit var fabMyLocation: FloatingActionButton
 
     private var destinationMarker: Marker? = null
     private var navigationRoute: Polyline? = null
@@ -122,10 +124,15 @@ class MapFragment : Fragment(), LocationListener {
 
         etSearch = view.findViewById(R.id.etSearch)
         btnSearch = view.findViewById(R.id.btnSearch)
+        fabMyLocation = view.findViewById(R.id.fabMyLocation)
 
         map.setTileSource(TileSourceFactory.MAPNIK)
         map.setMultiTouchControls(true)
         map.controller.setZoom(18.0)
+
+        val scaleBarOverlay = org.osmdroid.views.overlay.ScaleBarOverlay(map)
+        scaleBarOverlay.setAlignBottom(true)
+        map.overlays.add(scaleBarOverlay)
 
         locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -144,6 +151,17 @@ class MapFragment : Fragment(), LocationListener {
             val locationName = etSearch.text.toString()
             if (locationName.isNotEmpty()) {
                 searchLocation(locationName)
+            }
+        }
+
+        fabMyLocation.setOnClickListener {
+            if (::locationOverlay.isInitialized && locationOverlay.myLocation != null) {
+                map.controller.animateTo(locationOverlay.myLocation)
+                map.controller.setZoom(18.0)
+                locationOverlay.enableFollowLocation()
+                Toast.makeText(requireContext(), "Recenter to GPS", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Waiting for GPS...", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -197,11 +215,15 @@ class MapFragment : Fragment(), LocationListener {
                         destinationMarker?.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                         map.overlays.add(destinationMarker)
 
-                        val myLocation = locationOverlay.myLocation
-                        if (myLocation != null) {
-                            getRoute(myLocation, destinationPoint)
+                        locationOverlay.disableFollowLocation()
+
+                        val startPoint = locationOverlay.myLocation ?: lastLocation?.let { GeoPoint(it.latitude, it.longitude) }
+
+                        if (startPoint != null) {
+                            Toast.makeText(requireContext(), "Found! Drawing route...", Toast.LENGTH_SHORT).show()
+                            getRoute(startPoint, destinationPoint)
                         } else {
-                            Toast.makeText(requireContext(), "Location found! Waiting for GPS to draw route...", Toast.LENGTH_LONG).show()
+                            Toast.makeText(requireContext(), "Destination found! Waiting for GPS to draw route...", Toast.LENGTH_LONG).show()
                         }
                     }
                 } else {
@@ -241,7 +263,6 @@ class MapFragment : Fragment(), LocationListener {
     }
 
     private fun getRoute(start: GeoPoint, end: GeoPoint) {
-        Toast.makeText(requireContext(), "Calculating route...", Toast.LENGTH_SHORT).show()
 
         lifecycleScope.launch(Dispatchers.IO) {
             val roadManager = OSRMRoadManager(requireContext(), Configuration.getInstance().userAgentValue)
