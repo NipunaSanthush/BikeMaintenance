@@ -392,7 +392,7 @@ class HomeFragment : Fragment() {
         androidx.work.WorkManager.getInstance(requireContext())
             .enqueueUniquePeriodicWork(
                 "DailyReminderCheck",
-                androidx.work.ExistingPeriodicWorkPolicy.KEEP, 
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
                 workRequest
             )
     }
