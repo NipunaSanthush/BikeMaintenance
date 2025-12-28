@@ -162,6 +162,8 @@ class HomeFragment : Fragment() {
         fab.setOnClickListener {
             showSelectionDialog()
         }
+
+        startDailyReminderCheck()
     }
 
     override fun onResume() {
@@ -381,5 +383,17 @@ class HomeFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun startDailyReminderCheck() {
+        val workRequest = androidx.work.PeriodicWorkRequestBuilder<ReminderWorker>(1, java.util.concurrent.TimeUnit.DAYS)
+            .build()
+
+        androidx.work.WorkManager.getInstance(requireContext())
+            .enqueueUniquePeriodicWork(
+                "DailyReminderCheck",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP, 
+                workRequest
+            )
     }
 }
